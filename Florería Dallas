@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Florería Dallas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:0; padding:0; }
+        header { background-color: #f47c7c; color:white; padding:15px; text-align:center; }
+        nav a { margin: 0 10px; color:white; text-decoration:none; }
+        section { padding:20px; }
+        .productos, .lista { display:flex; flex-wrap:wrap; gap:10px; }
+        .producto { border:1px solid #ccc; padding:10px; width:200px; }
+        button { background-color:#f47c7c; color:white; border:none; padding:8px 12px; cursor:pointer; }
+        .hidden { display:none; }
+        form input, form textarea { display:block; margin:5px 0; padding:5px; width:95%; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Florería Dallas</h1>
+        <nav>
+            <a href="#" onclick="mostrarSeccion('catalogo')">Catálogo</a>
+            <a href="#" onclick="mostrarSeccion('contacto')">Contacto</a>
+            <a href="#" onclick="mostrarSeccion('adminLogin')">Admin</a>
+        </nav>
+    </header>
+
+    <!-- Catálogo -->
+    <section id="catalogo">
+        <h2>Catálogo de Flores</h2>
+        <div id="productos" class="productos"></div>
+    </section>
+
+    <!-- Detalles del Producto -->
+    <section id="detalles" class="hidden">
+        <h2>Detalles del Producto</h2>
+        <div id="detalleProducto"></div>
+        <button onclick="volverCatalogo()">Volver al catálogo</button>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto" class="hidden">
+        <h2>Contacto</h2>
+        <form id="formContacto">
+            <input type="text" placeholder="Nombre" required>
+            <input type="email" placeholder="Correo" required>
+            <textarea placeholder="Mensaje" required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+    </section>
+
+    <!-- Admin Login -->
+    <section id="adminLogin" class="hidden">
+        <h2>Panel Administrador</h2>
+        <form id="formLogin">
+            <input type="text" placeholder="Usuario" required>
+            <input type="password" placeholder="Contraseña" required>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </section>
+
+    <!-- Admin Panel -->
+    <section id="adminPanel" class="hidden">
+        <h2>Gestión de Productos</h2>
+        <form id="formProducto">
+            <input type="text" placeholder="Nombre del producto" required>
+            <input type="number" placeholder="Precio" required>
+            <textarea placeholder="Descripción"></textarea>
+            <button type="submit">Agregar Producto</button>
+        </form>
+        <div id="listaProductos" class="lista"></div>
+
+        <h2>Pedidos</h2>
+        <div id="listaPedidos" class="lista"></div>
+    </section>
+
+    <script>
+        // Datos iniciales
+        let productos = [
+            {id: 1, nombre: "Rosas Rojas", precio: 20, descripcion: "Ramo de 12 rosas rojas"},
+            {id: 2, nombre: "Tulipanes", precio: 15, descripcion: "Ramo de 10 tulipanes"},
+        ];
+        let pedidos = [];
+
+        // Mostrar secciones
+        function mostrarSeccion(id){
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        // Mostrar catálogo
+        function mostrarCatalogo() {
+            mostrarSeccion('catalogo');
+            const cont = document.getElementById('productos');
+            cont.innerHTML = "";
+            productos.forEach(p => {
+                let div = document.createElement('div');
+                div.className = 'producto';
+                div.innerHTML = `
+                    <h3>${p.nombre}</h3>
+                    <p>Precio: $${p.precio}</p>
+                    <button onclick="verDetalle(${p.id})">Ver detalles</button>
+                `;
+                cont.appendChild(div);
+            });
+        }
+
+        // Ver detalle del producto
+        function verDetalle(id) {
+            const p = productos.find(x => x.id === id);
+            document.getElementById('detalleProducto').innerHTML = `
+                <h3>${p.nombre}</h3>
+                <p>${p.descripcion}</p>
+                <p>Precio: $${p.precio}</p>
+                <button onclick="realizarPedido(${id})">Realizar Pedido</button>
+            `;
+            mostrarSeccion('detalles');
+        }
+
+        function volverCatalogo(){ mostrarCatalogo(); }
+
+        // Realizar pedido
+        function realizarPedido(id){
+            const p = productos.find(x => x.id === id);
+            pedidos.push(p);
+            alert(`Pedido realizado: ${p.nombre}`);
+        }
+
+        // Contacto
+        document.getElementById('formContacto').addEventListener('submit', e=>{
+            e.preventDefault();
+            alert('Mensaje enviado, gracias por contactarnos!');
+            e.target.reset();
+        });
+
+        // Admin login simulado
+        document.getElementById('formLogin').addEventListener('submit', e=>{
+            e.preventDefault();
+            mostrarSeccion('adminPanel');
+            mostrarProductosAdmin();
+            mostrarPedidosAdmin();
+        });
+
+        // Admin agrega producto
+        document.getElementById('formProducto').addEventListener('submit', e=>{
+            e.preventDefault();
+            let nombre = e.target[0].value;
+            let precio = e.target[1].value;
+            let desc = e.target[2].value;
+            productos.push({id: productos.length+1, nombre, precio, descripcion: desc});
+            e.target.reset();
+            mostrarProductosAdmin();
+            alert('Producto agregado');
+        });
+
+        // Mostrar productos en admin
+        function mostrarProductosAdmin(){
+            const lista = document.getElementById('listaProductos');
+            lista.innerHTML = "";
+            productos.forEach(p=>{
+                let div = document.createElement('div');
+                div.className='producto';
+                div.innerHTML = `
+                    <h3>${p.nombre}</h3>
+                    <p>Precio: $${p.precio}</p>
+                    <p>${p.descripcion}</p>
+                    <button onclick="editarProducto(${p.id})">Editar</button>
+                    <button onclick="eliminarProducto(${p.id})">Eliminar</button>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function editarProducto(id){
+            const p = productos.find(x=>x.id===id);
+            const nombre = prompt("Nuevo nombre:", p.nombre);
+            const precio = prompt("Nuevo precio:", p.precio);
+            const desc = prompt("Nueva descripción:", p.descripcion);
+            if(nombre) p.nombre=nombre;
+            if(precio) p.precio=precio;
+            if(desc) p.descripcion=desc;
+            mostrarProductosAdmin();
+        }
+
+        function eliminarProducto(id){
+            productos = productos.filter(x=>x.id!==id);
+            mostrarProductosAdmin();
+        }
+
+        // Mostrar pedidos en admin
+        function mostrarPedidosAdmin(){
+            const lista = document.getElementById('listaPedidos');
+            lista.innerHTML = "";
+            pedidos.forEach((p,i)=>{
+                let div=document.createElement('div');
+                div.className='producto';
+                div.innerHTML=`
+                    <h3>${p.nombre}</h3>
+                    <p>Precio: $${p.precio}</p>
+                    <button onclick="confirmarPedido(${i})">Confirmar entrega</button>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function confirmarPedido(i){
+            pedidos.splice(i,1);
+            mostrarPedidosAdmin();
+            alert("Pedido confirmado y entregado");
+        }
+
+        // Inicial
+        mostrarCatalogo();
+    </script>
+</body>
+</html>
